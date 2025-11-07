@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from typing import Optional
-from schemas import ItemResponse
+from typing import Optional,List
+from schemas import ItemResponse,Address
 
 app = FastAPI()
 
@@ -38,8 +38,11 @@ Items = [Postcode("北海道","札幌市中央区","","ﾎｯｶｲﾄﾞｳ","�
 # [01101,"060  ","0600041","ﾎｯｶｲﾄﾞｳ","ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ","ｵｵﾄﾞｵﾘﾋｶﾞｼ","北海道","札幌市中央区","大通東",0,0,1,0,0,0]
 # ]
 
-@app.get("/api/search",response_model=ItemResponse)
-def find_by_zipcode(zipcode :str):
+@app.get("/api/search",response_model=ItemResponse[List[Address]])
   for item in Items:
     if item.zipcode == zipcode:
-      return item
+  return {
+    "message" : "",
+    "result" : limited_list,
+    "status" : 200
+  }
