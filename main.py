@@ -39,8 +39,19 @@ Items = [Postcode("北海道","札幌市中央区","","ﾎｯｶｲﾄﾞｳ","�
 # ]
 
 @app.get("/api/search",response_model=ItemResponse[List[Address]])
+def find_by_zipcode(zipcode :str,limit :Optional[int]=None):
+
+  if limit is None:
+    limit == 20
+  else:
+    limit == limit
+
+  item_list = []
   for item in Items:
     if item.zipcode == zipcode:
+      item_list.append(item)
+  limited_list = item_list[:limit]
+  
   return {
     "message" : "",
     "result" : limited_list,
