@@ -1,4 +1,4 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI,HTTPException,Request,status
 from fastapi.responses import JSONResponse
 from typing import Optional,List
 from schemas import ItemResponse,Address
@@ -40,41 +40,45 @@ Items = [Postcode("北海道","札幌市中央区","","ﾎｯｶｲﾄﾞｳ","�
 # [01101,"060  ","0600041","ﾎｯｶｲﾄﾞｳ","ｻｯﾎﾟﾛｼﾁｭｳｵｳｸ","ｵｵﾄﾞｵﾘﾋｶﾞｼ","北海道","札幌市中央区","大通東",0,0,1,0,0,0]
 # ]
 
-@app.exception_handlers(RequestValidationError)
+@app.exception_handler(RequestValidationError)
+async def validation_handler(request: Request,exc: RequestValidationError):
+  return JSONResponse(
+    status_code = 400,
+    content={
+      "message" :"必須パラメータが指定されていません。",
+      "result" :None,
+      "status" : 400
+    }
+  )
+
+@app.exception_handler(HTTPException)
+async def HTTPException_handler(request: Request,exc: HTTPException):
+  return JSONResponse(
+    status_code= exc.status_code,
+    content={
+      "message" : exc.detail,
+      "result" : None,
+      "status" : exc.status_code
+    }
+  )
 
 
-
-
-@app.get("/api/search",response_model=ItemResponse[List[Address]])
+@app.get("/api/search",response_model=ItemResponse[List[Address]],status_code=status.HTTP_200_OK)
 def find_by_zipcode(zipcode :str,limit :Optional[int]=None):
 
   if limit is None:
     limit == 20
   else:
     limit == limit
-  
-    
     
   if len(str(zipcode))!=7:
     raise HTTPException(status_code=400,
-                        detail={
-                          "message" :"パラメータ「郵便番号」の桁数が不正です。",
-                          "result" :"",
-                          "status" : 400
-                        })
+                        detail="パラメータ「郵便番号」の桁数が不正です。")
   try:
     int(zipcode)
   except ValueError:
     raise HTTPException(status_code=400,
-                        detail={
-                          "message" :"パラメータが数字以外です。",
-                          "result" :"",
-                          "status" : 400
-                        })
-    
-    # if zipcode is None:
-    #   raise HTTPException(status_code=400,detail="リクエストパラメータが不正です")
-
+                        detail="パラメータ「郵便番号」に数字以外の文字が指定されています。")
   try:
     item_list = []
     for item in Items:
@@ -89,10 +93,6 @@ def find_by_zipcode(zipcode :str,limit :Optional[int]=None):
   except Exception as e:
    raise HTTPException(
      status_code=500,
-     detail={
-       "message" : str(e),
-       "result" : "",
-       "status" :500
-     }
-   )
+     detail=str(e)
+    )
    
