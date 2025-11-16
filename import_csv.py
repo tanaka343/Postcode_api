@@ -34,4 +34,9 @@ def import_csv(db: Session):
   db.commit()
   db.close()
 
-import_csv(db)
+if __name__ == "__main__":
+  try:
+    import_csv(db)
+    print("郵便番号データ取り込み完了")
+  finally:
+    db.close()
