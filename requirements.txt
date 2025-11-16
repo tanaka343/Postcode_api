@@ -5,3 +5,5 @@ alembic
 pydantic
 pymysql
 cryptography
+pytest
+httpx
