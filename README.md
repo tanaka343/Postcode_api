@@ -122,7 +122,36 @@ uvicorn main:app --reload
 アクセス:
 - API: `http://localhost:8000`
 - Swagger UI: `http://localhost:8000/docs`
+---
+### 本番テスト環境（MySQL）
 
+#### 初回のみ: テスト用DB作成
+```bash
+docker compose --env-file .env.production up -d mysql
+docker compose exec mysql mysql -u root -prootpass
+```
+MySQL内で実行:
+```sql
+CREATE DATABASE postcode_db_test;
+GRANT ALL PRIVILEGES ON postcode_db_test.* TO 'appuser'@'%';
+exit
+```
+#### テスト環境
+```bash
+docker compose --env-file .env.test up --build
+docker compose exec api alembic upgrade head
+docker compose exec api python import_csv.py
+```
+
+#### 本番環境
+```bash
+docker compose --env-file .env.production up --build
+docker compose exec api alembic upgrade head
+```
+アクセス:
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+---
 ## テストの実行
 ```bash
 pytest tests/test_main.py -v
@@ -234,8 +263,16 @@ curl "http://localhost:8000/api/search?zipcode=0600041"
 
 ## 工夫した点・学んだこと
 
+- 既存機能の模倣
+- カスタマイズしたエラーハンドリング
+- 環境の切り分け
 
 ## 改善点・今後の課題
 
-- 検索する\
-やりたいことを適切に検索できないため、結局aiにたよることになってしまう
+- 適切に検索できるようにする\
+環境の切り分け方法の学習で、やりたいことを適切に検索できないため、結局aiにたより受動的に学習する形になってしまった。
+
+- エラー解決を能動的に解決する\
+エラーが出たときにフォーマットを作成して状況を整理しながら質問していたが、自分で解決する能力が身についている感じがしない。工夫が必要。
+  - エラーログを出力させる
+  - エラーコードを読めるようにして、整理して記録する
